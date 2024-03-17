@@ -4,21 +4,22 @@ import random
 card_deck = {
     "hearts": {
         "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10,
-        "K": 10, "Q": 10, "A": [1, 10]
+        "K": 10, "Q": 10, "A": [1, 11]
     },
     "diamonds": {
         "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10,
-        "K": 10, "Q": 10, "A": [1, 10]
+        "K": 10, "Q": 10, "A": [1, 11]
     },
     "clubs": {
         "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10,
-        "K": 10, "Q": 10, "A": [1, 10]
+        "K": 10, "Q": 10, "A": [1, 11]
     },
     "spades": {
         "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "J": 10,
-        "K": 10, "Q": 10, "A": [1, 10]
+        "K": 10, "Q": 10, "A": [1, 11]
     }
 }
+
 
 # Step 1: retrieve a list of our card suites.
 # suit = list(card_deck.keys())
@@ -49,60 +50,87 @@ def hit(deck):
     card_value = deck[rand_suit][rand_rank]
     return {"rank": rand_rank, "suit": rand_suit, "value": card_value}
 
-computer_score = 0
+
+def ace_value(user_cards, current_score):
+    if user_cards["rank"] == "A":
+        return 11 if current_score + 11 <= 21 else 1
+
+
+house_score = 0
 user_score = 0
 top_score = 21
-turn = 0
 card_count = 0
+hit_me = ""
 
 print("\nWe are going to play a game of black jack. The rules are all numerical cards are worth face value\n"
       "Jacks, Kings, and Queens are worth 10 points and Aces are worth either 1 or 11 your choice.\n"
-      "If at any time your cards exceed a sum of 21 you lose (bust).")
+      "If at any time your cards exceed a sum of 21 you lose (bust).\n")
 
+print("Press the S button to start the game or the Q button to quit. ")
+user_input = input(">").lower()
 
-# assesses the score of both the computer and the user
-while user_score < top_score or computer_score < top_score:
-    print("To begin press S to start or Q to quit: ")  # starts the game
-    start = input(">").lower()
-    user_hand = hit(card_deck)  # draws a random card from our card_deck
-    card_count += 1
-    turn += 1
+# try:
+if user_input == "s":
+    while hit_me != "p":
+        user_hand = hit(card_deck)
+        card_count += 1
 
-    if start == "s":
         if user_hand["rank"] == "A":
-            print("Your card is an Ace which can be worth 1 or 10. Which value would you like to assign to it?")
-            ace = input(">")
-            if ace == str(1) or ace == str(10):
-                user_hand["value"] = ace
+            adjusted_ace_value = ace_value(user_hand, user_score)
+            user_score += adjusted_ace_value
+            print("The value of your Ace card has been automatically adjusted based on the current value of your hand,"
+                  "it has been adjusted to:", adjusted_ace_value)
+            print("\nUser card #", card_count, ":", user_hand["rank"], "of", user_hand["suit"], "value:",
+                  adjusted_ace_value,
+                  "\n Total hand value of", user_score)
+            if user_score <= top_score:
+                print("\nWould you like to hit(H, add another card) or pass(P, allow the computers turn to begin)?")
+                hit_me = input(">").lower()
             else:
-                print("Please input either 1 or 10 next time")
-                print("Game over")
+                print("BUST, HOUSE WINS")
                 break
+
         else:
-            print("User hand Card 1:", user_hand["rank"], "of", user_hand["suit"], "value:", user_hand["value"])
-            user_score = user_hand["value"]
-            if card_count <= 1:
-                print("Press the f key to flip your second card over:")
-                user_input = input(">").lower()
-                if user_input == "f":
-                    user_hand = hit(card_deck)
-                    print("User hand Card 2:", user_hand["rank"], "of", user_hand["suit"], "value:", user_hand["value"])
-                    user_score += user_hand["value"]
-                    card_count += 1
-                    print("Your current hand value is:", user_score)
-                    print("Would you like to hit(H) or pass(P)?")
-                    hit = input(">").lower()
+            user_score += user_hand["value"]
+            print("User card #", card_count, ":", user_hand["rank"], "of", user_hand["suit"], "value:",
+                  user_hand["value"],
+                  "\n Total hand value of:", user_score)
+            if user_score <= top_score:
+                print("\nWould you like to hit(H, add another card) or pass(P, allow the computers turn to begin)?")
+                hit_me = input(">").lower()
+            else:
+                print("BUSTED, HOUSE WINS")
+                break
 
+while house_score <= user_score <= top_score:
+    house_hand = hit(card_deck)
+    card_count = 0
+    card_count += 1
 
-    elif start == "q":
-        print("You have quite the game. See ya!!")
-        break
+    if house_hand["rank"] == "A":
+        adjusted_ace_value = ace_value(house_hand, house_score)
+        house_score += adjusted_ace_value
+        print("The value of your Ace card has been automatically adjusted based on the current value of your hand,"
+              "it has been adjusted to:", adjusted_ace_value)
+        print("\nHouse card #", card_count, ":", house_hand["rank"], "of", house_hand["suit"], "value:",
+              adjusted_ace_value,
+              "\n Total hand value of", house_score)
+        if house_score > top_score:
+            print("BUST, USER WINS")
+            break
 
     else:
-        print("Please input a valid selection.")
-        continue
+        house_score += house_hand["value"]
+        print("House card #", card_count, ":", house_hand["rank"], "of", house_hand["suit"], "value:", house_hand["value"],
+              "\n Total hand value of:", house_score)
+        if house_score > top_score:
+            print("BUST, USER WINS")
+            break
 
+if user_score < house_score < top_score:
+    print()
+    print("HOUSE WINS!!!")
 
-
-
-
+elif house_score < user_score < top_score:
+    print()
+    print("CHALLENGER WINS")
